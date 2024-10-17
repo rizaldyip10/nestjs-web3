@@ -40,12 +40,21 @@ export class UsersService {
     );
   }
 
+  async findByEmail(email: string) {
+    return await this.userRepository.findOne({
+      where: { email },
+    });
+  }
+
   findAll() {
     return `This action returns all users`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: number) {
+    return this.userRepository.findOne({
+      where: { id },
+      select: ['id', 'email', 'username', 'avatar'],
+    });
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {

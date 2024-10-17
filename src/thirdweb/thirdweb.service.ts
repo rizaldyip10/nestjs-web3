@@ -10,7 +10,17 @@ import {
 import { defineChain } from 'thirdweb/chains';
 import { ConfigService } from '@nestjs/config';
 import { Account } from 'thirdweb/dist/types/wallets/interfaces/wallet';
-import { Product } from 'src/products/entities/product.entity';
+
+interface BlockchainProduct {
+  owner: string;
+  name: string;
+  description: string;
+  price: number;
+  stocks: number;
+  image: string;
+  buyers: string[];
+  amountBought: number[];
+}
 
 @Injectable()
 export class ThirdwebService implements OnModuleInit {
@@ -111,12 +121,11 @@ export class ThirdwebService implements OnModuleInit {
         params: [BigInt(productId)],
       });
 
-      // Assuming the contract returns an array of addresses and an array of quantities
       const [addresses, quantities] = data;
 
       return {
         addresses: addresses as string[],
-        quantities: quantities.map((q) => Number(q)), // Convert BigNumber to regular number if necessary
+        quantities: quantities.map((q) => Number(q)),
       };
     } catch (error) {
       console.error('Error getting buyers:', error);
@@ -124,7 +133,7 @@ export class ThirdwebService implements OnModuleInit {
     }
   }
 
-  async getProducts(): Promise<Product[]> {
+  async getProducts(): Promise<BlockchainProduct[]> {
     try {
       const data = await readContract({
         contract: this.contractInstance,
@@ -134,15 +143,15 @@ export class ThirdwebService implements OnModuleInit {
       });
 
       // Convert the returned data to our Product interface
-      const products: Product[] = data.map((product: any) => ({
+      const products: BlockchainProduct[] = data.map((product: any) => ({
         owner: product.owner,
         name: product.name,
         description: product.description,
-        price: Number(product.price), // Convert BigNumber to regular number
-        stocks: Number(product.stocks), // Convert BigNumber to regular number
+        price: Number(product.price),
+        stocks: Number(product.stocks),
         image: product.image,
         buyers: product.buyers,
-        amountBought: product.amountBought.map((amount: any) => Number(amount)), // Convert BigNumber to regular number
+        amountBought: product.amountBought.map((amount: any) => Number(amount)),
       }));
 
       return products;

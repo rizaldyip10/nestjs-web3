@@ -1,14 +1,25 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { User } from 'src/users/entities/user.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+} from 'typeorm';
 
-@Entity()
+@Entity({ name: 'products', schema: 'public' })
 export class Product {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  owner: string;
+  @ManyToOne(() => User, (user) => user.products)
+  @JoinColumn({ name: 'owner_id' })
+  owner: User;
 
-  @Column()
+  @Column({ length: 255, nullable: false })
   name: string;
 
   @Column('text')
@@ -20,12 +31,21 @@ export class Product {
   @Column()
   stocks: number;
 
-  @Column()
+  @Column({ nullable: true })
   image: string;
 
-  @Column('simple-array')
+  @Column('simple-array', { nullable: true })
   buyers: string[];
 
-  @Column('simple-array')
+  @Column('simple-array', { nullable: true })
   amountBought: number[];
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt: Date;
 }
