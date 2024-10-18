@@ -1,4 +1,9 @@
-import { ConflictException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entities/user.entity';
 import { Repository } from 'typeorm';
@@ -57,8 +62,37 @@ export class UsersService {
     });
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    const { username, email } = updateUserDto;
+    const updatedUser = await this.userRepository.findOne({
+      where: { id },
+    });
+
+    if (!updatedUser) {
+      throw new NotFoundException(
+        Response.failed(HttpStatus.CONFLICT, 'User not found', null),
+      );
+    }
+
+    const isEmailOrUsernameExist = await this.userRepository.findOne({
+      where: [{ email }, { username }],
+    });
+
+    if (isEmailOrUsernameExist) {
+      throw new ConflictException(
+        Response.failed(HttpStatus.CONFLICT, 'User already exist', null),
+      );
+    }
+
+    Object.assign(updatedUser, updateUserDto);
+
+    const result = await this.userRepository.save(updatedUser);
+
+    return Response.successful(
+      HttpStatus.OK,
+      'User updated',
+      new UserDTO(result),
+    );
   }
 
   remove(id: number) {

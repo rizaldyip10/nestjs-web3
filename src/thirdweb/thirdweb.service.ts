@@ -10,17 +10,8 @@ import {
 import { defineChain } from 'thirdweb/chains';
 import { ConfigService } from '@nestjs/config';
 import { Account } from 'thirdweb/dist/types/wallets/interfaces/wallet';
-
-interface BlockchainProduct {
-  owner: string;
-  name: string;
-  description: string;
-  price: number;
-  stocks: number;
-  image: string;
-  buyers: string[];
-  amountBought: number[];
-}
+import { BlockchainProduct } from 'src/auth/types/BlockchainProduct.type';
+import { CreateProductDTO } from './dto/create-product.dto';
 
 @Injectable()
 export class ThirdwebService implements OnModuleInit {
@@ -74,16 +65,10 @@ export class ThirdwebService implements OnModuleInit {
     }
   }
 
-  async createProduct(
-    owner: string,
-    name: string,
-    description: string,
-    price: number,
-    stocks: number,
-    image: string,
-    account: Account,
-  ): Promise<string> {
+  async createProduct(createProductDto: CreateProductDTO): Promise<string> {
     try {
+      const { owner, name, description, price, stocks, image, account } =
+        createProductDto;
       const transaction = await prepareContractCall({
         contract: this.contractInstance,
         method:
@@ -158,6 +143,22 @@ export class ThirdwebService implements OnModuleInit {
     } catch (error) {
       console.error('Error getting products:', error);
       throw new Error('Failed to get products');
+    }
+  }
+
+  async getProduct(productId: number) {
+    try {
+      const data = await readContract({
+        contract: this.contractInstance,
+        method:
+          'function getProduct(uint256 _productId) view returns ((address owner, string name, string description, uint256 price, uint256 stocks, string image, address[] buyers, uint256[] amountBought))',
+        params: [BigInt(productId)],
+      });
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching product:', error);
+      throw new Error('Failed to fetch product from blockchain');
     }
   }
 }

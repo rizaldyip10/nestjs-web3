@@ -1,7 +1,6 @@
 import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { compare } from 'bcrypt';
-import { UserDTO } from 'src/users/dto/user.dto';
 import { UsersService } from 'src/users/service/users.service';
 import { Response } from 'src/utils/response.utils';
 import { AuthJwtPayload } from './types/auth-jwtPayload';
@@ -28,7 +27,7 @@ export class AuthService {
       );
     }
 
-    return { id: user.id };
+    return user;
   }
   login(userId: number) {
     const payload: AuthJwtPayload = { sub: userId };
