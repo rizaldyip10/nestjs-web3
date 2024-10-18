@@ -10,7 +10,7 @@ import {
 import { defineChain } from 'thirdweb/chains';
 import { ConfigService } from '@nestjs/config';
 import { Account } from 'thirdweb/dist/types/wallets/interfaces/wallet';
-import { BlockchainProduct } from 'src/auth/types/BlockchainProduct.type';
+import { BlockchainProduct } from 'src/thirdweb/types/BlockchainProduct.type';
 import { CreateProductDTO } from './dto/create-product.dto';
 
 @Injectable()
@@ -50,7 +50,7 @@ export class ThirdwebService implements OnModuleInit {
       const transaction = await prepareContractCall({
         contract: this.contractInstance,
         method: 'function buyProduct(uint256 _productId) payable',
-        params: [BigInt(productId)],
+        params: [BigInt(productId - 1)],
       });
 
       const { transactionHash } = await sendTransaction({
@@ -103,7 +103,7 @@ export class ThirdwebService implements OnModuleInit {
         contract: this.contractInstance,
         method:
           'function getBuyers(uint256 _productId) view returns (address[], uint256[])',
-        params: [BigInt(productId)],
+        params: [BigInt(productId - 1)],
       });
 
       const [addresses, quantities] = data;
@@ -128,16 +128,21 @@ export class ThirdwebService implements OnModuleInit {
       });
 
       // Convert the returned data to our Product interface
-      const products: BlockchainProduct[] = data.map((product: any) => ({
-        owner: product.owner,
-        name: product.name,
-        description: product.description,
-        price: Number(product.price),
-        stocks: Number(product.stocks),
-        image: product.image,
-        buyers: product.buyers,
-        amountBought: product.amountBought.map((amount: any) => Number(amount)),
-      }));
+      const products: BlockchainProduct[] = data.map(
+        (product: any, index: number) => ({
+          id: index + 1,
+          owner: product.owner,
+          name: product.name,
+          description: product.description,
+          price: Number(product.price),
+          stocks: Number(product.stocks),
+          image: product.image,
+          buyers: product.buyers,
+          amountBought: product.amountBought.map((amount: any) =>
+            Number(amount),
+          ),
+        }),
+      );
 
       return products;
     } catch (error) {
@@ -152,7 +157,7 @@ export class ThirdwebService implements OnModuleInit {
         contract: this.contractInstance,
         method:
           'function getProduct(uint256 _productId) view returns ((address owner, string name, string description, uint256 price, uint256 stocks, string image, address[] buyers, uint256[] amountBought))',
-        params: [BigInt(productId)],
+        params: [BigInt(productId - 1)],
       });
 
       return data;

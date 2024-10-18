@@ -1,4 +1,5 @@
 export interface BlockchainProduct {
+  id: number;
   owner: string;
   name: string;
   description: string;
